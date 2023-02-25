@@ -1,8 +1,9 @@
+import sys
 from io import open
 
-import inline as inline
-import matplotlib as matplotlib
-import nltk
+# import inline as inline
+# import matplotlib as matplotlib
+# import nltk
 from conllu import parse_incr
 from collections import Counter
 
@@ -11,6 +12,8 @@ treebank['en'] = 'UD_English-GUM/en_gum'
 treebank['fr'] = 'UD_French-Rhapsodie/fr_rhapsodie'
 treebank['uk'] = 'UD_Ukrainian-IU/uk_iu'
 
+INVALID_ARGS_NUMBER_ERROR = "Usage: python p1 <lang>"
+INVALID_ARGS_LANG_ERROR = "Usage: en, fr, or uk for <lang>"
 
 def train_corpus(lang):
     return treebank[lang] + '-ud-train.conllu'
@@ -31,10 +34,18 @@ def conllu_corpus(path):
     return [prune_sentence(sent) for sent in sents]
 
 
-# Choose language.
-lang = 'en'
-# lang = 'fr'
-# lang = 'uk'
+def is_lang_valid(lang):
+    return sys.argv[1] == "en" or sys.argv[1] == "fr" or sys.argv[1] == "uk"
+
+
+# Validate language in arg.
+if len(sys.argv) != 2:
+    exit(INVALID_ARGS_NUMBER_ERROR)
+
+if not is_lang_valid(sys.argv[1]):
+    exit(INVALID_ARGS_LANG_ERROR)
+
+lang = sys.argv[1]
 
 train_sents = conllu_corpus(train_corpus(lang))
 test_sents = conllu_corpus(test_corpus(lang))
@@ -50,8 +61,7 @@ test_sents = conllu_corpus(test_corpus(lang))
 # The number of each tag
 n_tags = Counter(token['upos'] for sent in train_sents for token in sent)
 n_words = Counter(token['form'] for sent in train_sents for token in sent)
-
-
+# print(n_tags)
 # print(n_words)
 
 # tag_fd = nltk.FreqDist(token['upos'] for sent in train_sents for token in sent)
@@ -62,4 +72,3 @@ n_words = Counter(token['form'] for sent in train_sents for token in sent)
 # noun_preceders = [a[1] for (a, b) in word_tag_pairs if b[1] == 'NOUN']
 # fdist = nltk.FreqDist(noun_preceders)
 # print([tag for (tag, _) in fdist.most_common()], end = '')
-
