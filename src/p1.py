@@ -9,7 +9,7 @@ INVALID_ARGS_LANG_ERROR = "Usage: en, fr, or uk for <lang>"
 
 
 # Check <lang> is valid
-def is_lang_valid(lang):
+def is_lang_valid():
     return sys.argv[1] == "en" or sys.argv[1] == "fr" or sys.argv[1] == "uk"
 
 
@@ -18,7 +18,7 @@ if len(sys.argv) != 2:
     exit(INVALID_ARGS_NUMBER_ERROR)
 
 # Validate language in arg.
-if not is_lang_valid(sys.argv[1]):
+if not is_lang_valid():
     exit(INVALID_ARGS_LANG_ERROR)
 
 lang = sys.argv[1]
