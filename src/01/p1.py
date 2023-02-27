@@ -8,6 +8,7 @@ INVALID_ARGS_NUMBER_ERROR = "Usage: python p1 <lang>"
 INVALID_ARGS_LANG_ERROR = "Usage: en, fr, or uk for <lang>"
 
 VALID_LANG_LIST = ["en", "fr", "uk"]
+ARGV_NUMBER = 2
 
 # Check <lang> is valid
 def is_lang_valid():
@@ -15,7 +16,7 @@ def is_lang_valid():
 
 
 # Validate the number of args in arg.
-if len(sys.argv) != 2:
+if len(sys.argv) != ARGV_NUMBER:
     exit(INVALID_ARGS_NUMBER_ERROR)
 
 # Validate language in arg.
