@@ -4,23 +4,20 @@ from pos_tagger import pos_tagger
 
 
 class viterbi_pos_tagger(pos_tagger):
+    tag_set = set()
 
-    tag_sets = set()
-
-    def __init__(self, sents):
-        # Define a tag_sets
+    def set_tag_set(self, sents):
         for s in sents:
             t = [t for (w, t) in s]
-            self.tag_sets.update(t)
-        print(self.tag_sets)
+            self.tag_set.update(t)
 
     def initialse(self, sentence, emissionProb, transitionProb):
         vtb = {}
-        for tag in self.tag_sets:
+        for tag in self.tag_set:
             vtb[tag] = [None for w in sentence] + [None]
 
         # initialise
-        for tag in self.tag_sets:
+        for tag in self.tag_set:
             word = sentence[1]
             p = transitionProb[self.startWord].prob(tag) * emissionProb[tag].prob(word)
             vtb[tag][1] = (self.startWord, p)
@@ -31,9 +28,9 @@ class viterbi_pos_tagger(pos_tagger):
         # run for each word
         for i in range(2, len(sentence) - 1):
             word = sentence[i]
-            for tag in self.tag_sets:
+            for tag in self.tag_set:
                 maxProb = (None, 0)
-                for prevTag in self.tag_sets:
+                for prevTag in self.tag_set:
                     p = vtb[prevTag][i - 1][1] * transitionProb[prevTag].prob(tag) * emissionProb[tag].prob(word)
                     if p > maxProb[1]:
                         maxProb = (prevTag, p)
@@ -46,7 +43,7 @@ class viterbi_pos_tagger(pos_tagger):
         # finalise
         maxProb = (None, 0)
         n = len(sentence) - 1
-        for tag in self.tag_sets:
+        for tag in self.tag_set:
             p = vtb[tag][n - 1][1] * transitionProb[tag].prob(self.endWord)
             if p > maxProb[1]:
                 maxProb = (tag, p)

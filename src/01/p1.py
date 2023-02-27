@@ -35,13 +35,13 @@ test_sents = conllu_corpus(test_corpus(lang))
 # print(len(test_sents), 'test sentences')
 
 train_tagged_sents = get_tagged_sents(train_sents)
-# print(train_tagged_sents)
 train_sents = get_sents(train_tagged_sents)
+# print(train_tagged_sents)
 # print(train_sents)
 
 test_tagged_sents = get_tagged_sents(test_sents)
-# print(test_tagged_sents)
 test_sents = get_sents(test_tagged_sents)
+# print(test_tagged_sents)
 # print(test_sents)
 
 # brown test
@@ -52,13 +52,14 @@ test_sents = get_sents(test_tagged_sents)
 # train_sents = test_sents[0: int(traingRation * len(test_sents))]
 # test_sents = test_sents[int(traingRation * len(test_sents)):]
 
-tagger = viterbi_pos_tagger(train_sents)
+tagger = viterbi_pos_tagger()
+tagger.set_tag_set(train_sents)
 
 # Estimate the emission and transition probabilities
 # Estimate the emission probabilities
 print("Step 1: Estimating probabilities")
-emissionProb = tagger.getEmissionProb(train_sents, tagger.tag_sets)
-transitionProb = tagger.getTransitionProb(train_sents, tagger.tag_sets)
+emissionProb = tagger.getEmissionProb(train_sents, tagger.tag_set)
+transitionProb = tagger.getTransitionProb(train_sents, tagger.tag_set)
 # print("emissionProb:", emissionProb)
 # print("transitionProb:", transitionProb)
 leaningTime = time.time()
@@ -74,7 +75,7 @@ comparision = {
     "first": {"correct": 1, "incorrect": 0},
     "last": {"correct": 1, "incorrect": 0},
 }
-for tag in tagger.tag_sets:
+for tag in tagger.tag_set:
     comparision[tag] = {"correct": 0, "incorrect": 0}
 
 index = 0
@@ -99,7 +100,8 @@ predictingTime = time.time()
 print("Predicting time", (predictingTime - leaningTime))
 print("Step 3: Evaluation")
 # Evaluation: comparing them with the gold-standard sequence of tags for that sentence
-for tag in tagger.tag_sets:
+# tagger.set_tag_set(test_sents)
+for tag in tagger.tag_set:
     if tag == START_OF_SENTENCE_MARKER or tag == END_OF_SENTENCE_MARKER:
         continue
 
