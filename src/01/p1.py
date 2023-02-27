@@ -1,7 +1,9 @@
 import time
 import sys
 import progressbar as progressbar
-from p1_functions import *
+from nltk.corpus import brown
+
+from corpus import *
 from viterbi_pos_tagger import viterbi_pos_tagger
 
 INVALID_ARGS_NUMBER_ERROR = "Usage: python p1 <lang>"
@@ -33,21 +35,22 @@ test_sents = conllu_corpus(test_corpus(lang))
 # print(len(test_sents), 'test sentences')
 
 train_tagged_sents = get_tagged_sents(train_sents)
-# print(tagged_sents)
+# print(train_tagged_sents)
 train_sents = get_sents(train_tagged_sents)
-# print(sents)
+# print(train_sents)
 
 test_tagged_sents = get_tagged_sents(test_sents)
-# print(tagged_sents)
+# print(test_tagged_sents)
 test_sents = get_sents(test_tagged_sents)
-# print(sents)
+# print(test_sents)
 
-# print("Train size: ", len(train_sents))
-# print("Test size: ", len(test_sents))
-
+# brown test
+# data = brown.tagged_sents(tagset='universal')[0:100]
 # data = brown.tagged_sents(tagset='universal')
-# sents = get_sents(data)
-# print(sents)
+# sents = [[(START_OF_SENTENCE_MARKER, START_OF_SENTENCE_MARKER)] + s + [(END_OF_SENTENCE_MARKER, END_OF_SENTENCE_MARKER)] for s in data]
+# traingRation = 0.95
+# train_sents = test_sents[0: int(traingRation * len(test_sents))]
+# test_sents = test_sents[int(traingRation * len(test_sents)):]
 
 tagger = viterbi_pos_tagger(train_sents)
 
