@@ -1,5 +1,4 @@
 from conllu import parse_incr
-from nltk import WittenBellProbDist, ngrams, FreqDist
 
 treebank = {}
 treebank['en'] = 'UD_English-GUM/en_gum'

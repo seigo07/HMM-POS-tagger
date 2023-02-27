@@ -7,10 +7,11 @@ from viterbi_pos_tagger import viterbi_pos_tagger
 INVALID_ARGS_NUMBER_ERROR = "Usage: python p1 <lang>"
 INVALID_ARGS_LANG_ERROR = "Usage: en, fr, or uk for <lang>"
 
+VALID_LANG_LIST = ["en", "fr", "uk"]
 
 # Check <lang> is valid
 def is_lang_valid():
-    return sys.argv[1] == "en" or sys.argv[1] == "fr" or sys.argv[1] == "uk"
+    return sys.argv[1] in VALID_LANG_LIST
 
 
 # Validate the number of args in arg.
