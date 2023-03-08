@@ -1,9 +1,9 @@
 from conllu import parse_incr
 
 treebank = {}
-treebank['en'] = 'UD_English-GUM/en_gum'
-treebank['fr'] = 'UD_French-Rhapsodie/fr_rhapsodie'
-treebank['uk'] = 'UD_Ukrainian-IU/uk_iu'
+treebank['en'] = '../UD_English-GUM/en_gum'
+treebank['fr'] = '../UD_French-Rhapsodie/fr_rhapsodie'
+treebank['uk'] = '../UD_Ukrainian-IU/uk_iu'
 
 START_OF_SENTENCE_MARKER = "<s>"
 END_OF_SENTENCE_MARKER = "</s>"
