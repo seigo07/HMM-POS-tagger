@@ -31,13 +31,12 @@ start_time = time.time()
 train_sents = conllu_corpus(train_corpus(lang))
 test_sents = conllu_corpus(test_corpus(lang))
 
-train_tagged_sents = get_tagged_sents(train_sents)
-train_sents = get_sents(train_tagged_sents)
-# train_sents = change_unknown_words(train_sents)
+train_sents = get_sents_with_markers(get_tagged_sents(train_sents))
+train_sents = get_train_tagged_sents_with_unk(train_sents)
 
-test_tagged_sents = get_tagged_sents(test_sents)
-# test_tagged_sents = get_tagged_sents_with_unk(test_sents, train_sents)
-test_sents = get_sents(test_tagged_sents)
+# test_tagged_sents = get_tagged_sents(test_sents)
+test_tagged_sents = get_test_tagged_sents_with_unk(test_sents, train_sents)
+test_sents = get_sents_with_markers(test_tagged_sents)
 
 tagger = viterbi_pos_tagger()
 tagger.set_tagset(test_sents)

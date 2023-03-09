@@ -8,7 +8,7 @@ treebank['uk'] = '../UD_Ukrainian-IU/uk_iu'
 
 START_OF_SENTENCE_MARKER = "<s>"
 END_OF_SENTENCE_MARKER = "</s>"
-
+UNKNOWN_WORD_TAG = "UNK"
 
 def train_corpus(lang):
     return treebank[lang] + '-ud-train.conllu'
@@ -31,53 +31,48 @@ def conllu_corpus(path):
 
 # Generate the list of tuples of the word and the part-of-speech.
 def get_tagged_sents(sents):
-    train_tagged_sents = []
+    tagged_sents = []
     for sent in sents:
-        tagged_sents = []
+        tagged_sent = []
         for token in sent:
-            tagged_sents.append((token['form'], token['upos']))
-            # print(token['form'], '->', token['upos'], sep='', end=' ')
-        train_tagged_sents.append(tagged_sents)
-    return train_tagged_sents
+            tagged_sent.append((token['form'], token['upos']))
+        tagged_sents.append(tagged_sent)
+    return tagged_sents
 
 
-def get_sents(tagged_sents):
+def get_sents_with_markers(tagged_sents):
     return [[(START_OF_SENTENCE_MARKER, START_OF_SENTENCE_MARKER)]
             + s + [(END_OF_SENTENCE_MARKER, END_OF_SENTENCE_MARKER)]
             for s in tagged_sents]
 
 
-def change_unknown_words(sents):
-    words = []
-    for s in sents:
-        words += [w for (w, _) in s]
+def get_train_tagged_sents_with_unk(sents):
+    words = [w for s in sents for (w, _) in s]
     words_dist = FreqDist(words)
-    train_tagged_sents = []
+    tagged_sents = []
     for sent in sents:
-        tagged_sents = []
+        tagged_sent = []
         for (w, t) in sent:
             word = w
             # if word.endswith('ing'):
-            if words_dist[word] < 1:
-                word = "UNK"
-            tagged_sents.append((word, t))
-        train_tagged_sents.append(tagged_sents)
-    return train_tagged_sents
+            if words_dist[word] == 1:
+                word = UNKNOWN_WORD_TAG
+            tagged_sent.append((word, t))
+        tagged_sents.append(tagged_sent)
+    return tagged_sents
 
 
-def get_tagged_sents_with_unk(sents, words_sents):
-    words = []
-    for s in words_sents:
-        words += [w for (w, _) in s]
-    train_tagged_sents = []
+def get_test_tagged_sents_with_unk(sents, sents_with_unk):
+    words = [w for s in sents_with_unk for (w, _) in s]
+    tagged_sents = []
     for sent in sents:
-        tagged_sents = []
+        tagged_sent = []
         for token in sent:
             word = token['form']
             # if word.endswith('ing'):
             if word not in words:
-                word = "UNK"
-            tagged_sents.append((word, token['upos']))
-        train_tagged_sents.append(tagged_sents)
-    return train_tagged_sents
+                word = UNKNOWN_WORD_TAG
+            tagged_sent.append((word, token['upos']))
+        tagged_sents.append(tagged_sent)
+    return tagged_sents
 
