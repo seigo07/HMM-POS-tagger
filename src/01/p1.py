@@ -33,18 +33,19 @@ test_sents = conllu_corpus(test_corpus(lang))
 
 train_tagged_sents = get_tagged_sents(train_sents)
 train_sents = get_sents(train_tagged_sents)
-train_sents = change_unknown_words(train_sents)
+# train_sents = change_unknown_words(train_sents)
 
-# test_tagged_sents = get_tagged_sents(test_sents)
-test_tagged_sents = get_tagged_sents_with_unk(test_sents, train_sents)
+test_tagged_sents = get_tagged_sents(test_sents)
+# test_tagged_sents = get_tagged_sents_with_unk(test_sents, train_sents)
 test_sents = get_sents(test_tagged_sents)
 
 tagger = viterbi_pos_tagger()
-tagger.set_tagset(train_sents)
+tagger.set_tagset(test_sents)
 
 # Estimate the emission and transition probabilities
 print("Step 1: Estimating probabilities")
-emission_prob = tagger.get_emission_prob(train_sents, tagger.tagset)
+emission_prob = tagger.get_emission_prob(train_sents)
+print(emission_prob)
 transition_prob = tagger.get_transition_prob(train_sents, tagger.tagset)
 
 leaning_time = time.time()

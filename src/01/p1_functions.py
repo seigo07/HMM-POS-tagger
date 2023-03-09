@@ -57,7 +57,8 @@ def change_unknown_words(sents):
         tagged_sents = []
         for (w, t) in sent:
             word = w
-            if words_dist[word] == 1:
+            # if word.endswith('ing'):
+            if words_dist[word] < 1:
                 word = "UNK"
             tagged_sents.append((word, t))
         train_tagged_sents.append(tagged_sents)
@@ -73,6 +74,7 @@ def get_tagged_sents_with_unk(sents, words_sents):
         tagged_sents = []
         for token in sent:
             word = token['form']
+            # if word.endswith('ing'):
             if word not in words:
                 word = "UNK"
             tagged_sents.append((word, token['upos']))

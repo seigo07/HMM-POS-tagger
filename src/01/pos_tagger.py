@@ -6,13 +6,13 @@ class pos_tagger:
     START_OF_SENTENCE_MARKER = "<s>"
     END_OF_SENTENCE_MARKER = "</s>"
 
-    def get_emission_prob(self, sents, tagset):
-        emission = []
-        for s in sents:
-            emission += [(w.lower(), t) for (w, t) in s]
+    def get_emission_prob(self, sents):
 
         emission_prob = {}
-        for tag in tagset:
+        emission = [(w.lower(), t) for sent in sents for (w, t) in sent]
+        tags = set([t for sent in sents for (_, t) in sent])
+
+        for tag in tags:
             words = [w for (w, t) in emission if t == tag]
             emission_prob[tag] = WittenBellProbDist(FreqDist(words), bins=1e5)
 
