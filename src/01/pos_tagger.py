@@ -9,11 +9,10 @@ class pos_tagger:
     def get_emission_prob(self, sents):
 
         emission_prob = {}
-        emission = [(w.lower(), t) for sent in sents for (w, t) in sent]
         tags = set([t for sent in sents for (_, t) in sent])
 
         for tag in tags:
-            words = [w for (w, t) in emission if t == tag]
+            words = [w.lower() for sent in sents for (w, t) in sent if t == tag]
             emission_prob[tag] = WittenBellProbDist(FreqDist(words), bins=1e5)
 
         return emission_prob
