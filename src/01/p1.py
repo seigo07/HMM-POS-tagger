@@ -45,8 +45,7 @@ tagger.set_tagset(test_sents)
 # Estimate the emission and transition probabilities
 print("Step 1: Estimating probabilities")
 emission_prob = tagger.get_emission_prob(train_sents)
-print(emission_prob)
-transition_prob = tagger.get_transition_prob(train_sents, tagger.tagset)
+transition_prob = tagger.get_transition_prob(train_sents)
 
 leaning_time = time.time()
 print("Training time", (leaning_time - start_time))

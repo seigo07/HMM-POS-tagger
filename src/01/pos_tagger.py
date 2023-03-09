@@ -18,14 +18,15 @@ class pos_tagger:
 
         return emission_prob
 
-    def get_transition_prob(self, sents, tagset):
+    def get_transition_prob(self, sents):
         transition = []
         for s in sents:
             tags = [t for (w, t) in s]
             transition += ngrams(tags,2)
 
+        tags = set([t for sent in sents for (_, t) in sent])
         transition_prob = {}
-        for tag in tagset:
+        for tag in tags:
             next_tags = [nextTag for (prevTag, nextTag) in transition if prevTag == tag]
             transition_prob[tag] = WittenBellProbDist(FreqDist(next_tags), bins=1e5)
 
