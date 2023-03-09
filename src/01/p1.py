@@ -33,10 +33,10 @@ test_sents = conllu_corpus(test_corpus(lang))
 
 train_tagged_sents = get_tagged_sents(train_sents)
 train_sents = get_sents(train_tagged_sents)
-# train_sents = change_unknown_words(train_sents)
+train_sents = change_unknown_words(train_sents)
 
-test_tagged_sents = get_tagged_sents(test_sents)
-# test_tagged_sents = get_tagged_sents_with_unk(test_sents, train_sents)
+# test_tagged_sents = get_tagged_sents(test_sents)
+test_tagged_sents = get_tagged_sents_with_unk(test_sents, train_sents)
 test_sents = get_sents(test_tagged_sents)
 
 tagger = viterbi_pos_tagger()

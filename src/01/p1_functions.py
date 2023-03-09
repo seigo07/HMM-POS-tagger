@@ -48,25 +48,20 @@ def get_sents(tagged_sents):
 
 
 def change_unknown_words(sents):
-    tokens = []
+    words = []
     for s in sents:
-        tokens += [w for (w, _) in s]
-
-    # calculate a freqdist & calc the hapax legomena
-    fd_tok = FreqDist(tokens)
-    hpx_lg = set([e[0] for e in fd_tok.items() if e[1] == 1])
-
-    # update sentences by replacing all words with UNK that are in the hpx_lg set
-    new_sents = []
-    for sen in sents:
-        tmp_sen = []
-        for wd in sen:
-            if wd[0] in hpx_lg:
-                tmp_sen.append(('UNK', wd[1]))
-            else:
-                tmp_sen.append(wd)
-        new_sents += [tmp_sen]
-    return new_sents
+        words += [w for (w, _) in s]
+    words_dist = FreqDist(words)
+    train_tagged_sents = []
+    for sent in sents:
+        tagged_sents = []
+        for (w, t) in sent:
+            word = w
+            if words_dist[word] == 1:
+                word = "UNK"
+            tagged_sents.append((word, t))
+        train_tagged_sents.append(tagged_sents)
+    return train_tagged_sents
 
 
 def get_tagged_sents_with_unk(sents, words_sents):
