@@ -2,69 +2,66 @@ from pos_tagger import pos_tagger
 
 
 class viterbi_pos_tagger(pos_tagger):
-    tag_set = set()
+    tagset = set()
 
-    def set_tag_set(self, sents):
+    def set_tagset(self, sents):
         for s in sents:
             t = [t for (w, t) in s]
-            self.tag_set.update(t)
+            self.tagset.update(t)
 
-    def initialse(self, sentence, emissionProb, transitionProb):
+    def initialse(self, sentence, emission_prob, transition_prob):
         vtb = {}
-        for tag in self.tag_set:
+        for tag in self.tagset:
             vtb[tag] = [None for w in sentence] + [None]
 
         # initialise
-        for tag in self.tag_set:
+        for tag in self.tagset:
             word = sentence[1]
-            p = transitionProb[self.startWord].prob(tag) * emissionProb[tag].prob(word)
-            vtb[tag][1] = (self.startWord, p)
+            p = transition_prob[self.START_OF_SENTENCE_MARKER].prob(tag) * emission_prob[tag].prob(word)
+            vtb[tag][1] = (self.START_OF_SENTENCE_MARKER, p)
 
         return vtb
 
-    def runthrough(self, vtb, sentence, emissionProb, transitionProb):
-        # run for each word
+    def run(self, vtb, sentence, emission_prob, transition_prob):
         for i in range(2, len(sentence) - 1):
             word = sentence[i]
-            for tag in self.tag_set:
-                maxProb = (None, 0)
-                for prevTag in self.tag_set:
-                    p = vtb[prevTag][i - 1][1] * transitionProb[prevTag].prob(tag) * emissionProb[tag].prob(word)
-                    if p > maxProb[1]:
-                        maxProb = (prevTag, p)
+            for tag in self.tagset:
+                max_prob = (None, 0)
+                for prevTag in self.tagset:
+                    p = vtb[prevTag][i - 1][1] * transition_prob[prevTag].prob(tag) * emission_prob[tag].prob(word)
+                    if p > max_prob[1]:
+                        max_prob = (prevTag, p)
 
-                vtb[tag][i] = maxProb
+                vtb[tag][i] = max_prob
 
         return vtb
 
-    def finalise(self, vtb, sentence, emissionProb, transitionProb):
-        # finalise
-        maxProb = (None, 0)
+    def finalise(self, vtb, sentence, emission_prob, transition_prob):
+        max_prob = (None, 0)
         n = len(sentence) - 1
-        for tag in self.tag_set:
-            p = vtb[tag][n - 1][1] * transitionProb[tag].prob(self.endWord)
-            if p > maxProb[1]:
-                maxProb = (tag, p)
+        for tag in self.tagset:
+            p = vtb[tag][n - 1][1] * transition_prob[tag].prob(self.END_OF_SENTENCE_MARKER)
+            if p > max_prob[1]:
+                max_prob = (tag, p)
 
-        return maxProb
+        return max_prob
 
-    def backtrack(self, vtb, sentence, maxProb):
-        # backtrack
-        predictedPOS = [(self.endWord, self.endWord)]
+    def backtrack(self, vtb, sentence, max_prob):
+        predicted_pod = [(self.END_OF_SENTENCE_MARKER, self.END_OF_SENTENCE_MARKER)]
         for i in range(len(sentence) - 2, 0, -1):
             word = sentence[i]
-            tag = maxProb[0]
+            tag = max_prob[0]
 
-            predictedPOS.insert(0, (word, tag))
-            maxProb = vtb[tag][i]
+            predicted_pod.insert(0, (word, tag))
+            max_prob = vtb[tag][i]
 
-        predictedPOS.insert(0, (self.startWord, self.startWord))
-        return predictedPOS
+        predicted_pod.insert(0, (self.START_OF_SENTENCE_MARKER, self.START_OF_SENTENCE_MARKER))
+        return predicted_pod
 
-    def apply(self, sentence, emissionProb, transitionProb):
-        vtb = self.initialse(sentence, emissionProb, transitionProb)
-        vtb = self.runthrough(vtb, sentence, emissionProb, transitionProb)
-        maxProb = self.finalise(vtb, sentence, emissionProb, transitionProb)
+    def apply(self, sentence, emission_prob, transition_prob):
+        vtb = self.initialse(sentence, emission_prob, transition_prob)
+        vtb = self.run(vtb, sentence, emission_prob, transition_prob)
+        maxProb = self.finalise(vtb, sentence, emission_prob, transition_prob)
 
         if maxProb[0] is None:
             return [(w, None) for w in sentence]

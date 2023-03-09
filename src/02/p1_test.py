@@ -1,9 +1,8 @@
 import time
 import sys
 import progressbar as progressbar
-from nltk.corpus import brown
 
-from corpus import *
+from p1_functions import *
 from viterbi_pos_tagger import viterbi_pos_tagger
 
 INVALID_ARGS_NUMBER_ERROR = "Usage: python p1 <lang>"
@@ -29,39 +28,26 @@ lang = sys.argv[1]
 print("Load...")
 startTime = time.time()
 
+# Get train and test sents from corpus
 train_sents = conllu_corpus(train_corpus(lang))
 test_sents = conllu_corpus(test_corpus(lang))
-# print(len(train_sents), 'training sentences')
-# print(len(test_sents), 'test sentences')
 
-train_tagged_sents = get_tagged_sents(train_sents)
-train_sents = get_sents(train_tagged_sents)
-# print(train_tagged_sents)
-# print(train_sents)
+# Get sents and tagset for transition probability
+transition_sents = get_transition_sents(train_sents)
+transition_tagset = get_tagset(transition_sents)
 
-test_tagged_sents = get_tagged_sents(test_sents)
-test_sents = get_sents(test_tagged_sents)
-# print(test_tagged_sents)
-# print(test_sents)
-
-# brown test
-# data = brown.tagged_sents(tagset='universal')[0:100]
-# data = brown.tagged_sents(tagset='universal')
-# sents = [[(START_OF_SENTENCE_MARKER, START_OF_SENTENCE_MARKER)] + s + [(END_OF_SENTENCE_MARKER, END_OF_SENTENCE_MARKER)] for s in data]
-# traingRation = 0.95
-# train_sents = test_sents[0: int(traingRation * len(test_sents))]
-# test_sents = test_sents[int(traingRation * len(test_sents)):]
+# Get sents and tagset for emission probability
+emission_sents = get_emission_sents(train_sents)
+emission_tagset = get_tagset(emission_sents)
 
 tagger = viterbi_pos_tagger()
-tagger.set_tag_set(train_sents)
 
 # Estimate the emission and transition probabilities
-# Estimate the emission probabilities
-print("Step 1: Estimating probabilities")
-emissionProb = tagger.getEmissionProb(train_sents, tagger.tag_set)
-transitionProb = tagger.getTransitionProb(train_sents, tagger.tag_set)
+emissionProb = tagger.get_emission_prob(emission_sents, emission_tagset)
 # print("emissionProb:", emissionProb)
+transitionProb = tagger.get_transition_prob(transition_sents, transition_tagset)
 # print("transitionProb:", transitionProb)
+
 leaningTime = time.time()
 print("Training time", (leaningTime - startTime))
 print("Step 2: Applying HMM")
@@ -75,7 +61,7 @@ comparision = {
     "first": {"correct": 1, "incorrect": 0},
     "last": {"correct": 1, "incorrect": 0},
 }
-for tag in tagger.tag_set:
+for tag in emission_tagset:
     comparision[tag] = {"correct": 0, "incorrect": 0}
 
 index = 0
@@ -101,7 +87,7 @@ print("Predicting time", (predictingTime - leaningTime))
 print("Step 3: Evaluation")
 # Evaluation: comparing them with the gold-standard sequence of tags for that sentence
 # tagger.set_tag_set(test_sents)
-for tag in tagger.tag_set:
+for tag in emission_tagset:
     if tag == START_OF_SENTENCE_MARKER or tag == END_OF_SENTENCE_MARKER:
         continue
 

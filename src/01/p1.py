@@ -26,30 +26,27 @@ if not is_lang_valid():
 
 lang = sys.argv[1]
 print("Load...")
-startTime = time.time()
+start_time = time.time()
 
-# Get train and test sents from corpus
 train_sents = conllu_corpus(train_corpus(lang))
 test_sents = conllu_corpus(test_corpus(lang))
 
-# Get sents and tagset for transition probability
-transition_sents = get_transition_sents(train_sents)
-transition_tagset = get_tagset(transition_sents)
+train_tagged_sents = get_tagged_sents(train_sents)
+train_sents = get_sents(train_tagged_sents)
 
-# Get sents and tagset for emission probability
-emission_sents = get_emission_sents(train_sents)
-emission_tagset = get_tagset(emission_sents)
+test_tagged_sents = get_tagged_sents(test_sents)
+test_sents = get_sents(test_tagged_sents)
 
 tagger = viterbi_pos_tagger()
+tagger.set_tagset(train_sents)
 
 # Estimate the emission and transition probabilities
-emissionProb = tagger.get_emission_prob(emission_sents, emission_tagset)
-# print("emissionProb:", emissionProb)
-transitionProb = tagger.get_transition_prob(transition_sents, transition_tagset)
-# print("transitionProb:", transitionProb)
+print("Step 1: Estimating probabilities")
+emission_prob = tagger.get_emission_prob(train_sents, tagger.tagset)
+transition_prob = tagger.get_transition_prob(train_sents, tagger.tagset)
 
-leaningTime = time.time()
-print("Training time", (leaningTime - startTime))
+leaning_time = time.time()
+print("Training time", (leaning_time - start_time))
 print("Step 2: Applying HMM")
 # Applying a trained HMM on sentences from the testing data
 bar = progressbar.ProgressBar(maxval=len(test_sents),
@@ -61,7 +58,7 @@ comparision = {
     "first": {"correct": 1, "incorrect": 0},
     "last": {"correct": 1, "incorrect": 0},
 }
-for tag in emission_tagset:
+for tag in tagger.tagset:
     comparision[tag] = {"correct": 0, "incorrect": 0}
 
 index = 0
@@ -77,17 +74,17 @@ for sent in test_sents:
         cc += 1
         continue
 
-    predicted = tagger.apply(words, emissionProb, transitionProb)
+    predicted = tagger.apply(words, emission_prob, transition_prob)
     comparision = tagger.evaluate(sent, predicted, comparision)
     index += 1
 bar.finish()
 print(cc)
-predictingTime = time.time()
-print("Predicting time", (predictingTime - leaningTime))
+predicting_time = time.time()
+print("Predicting time", (predicting_time - leaning_time))
 print("Step 3: Evaluation")
 # Evaluation: comparing them with the gold-standard sequence of tags for that sentence
 # tagger.set_tag_set(test_sents)
-for tag in emission_tagset:
+for tag in tagger.tagset:
     if tag == START_OF_SENTENCE_MARKER or tag == END_OF_SENTENCE_MARKER:
         continue
 

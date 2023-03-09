@@ -28,35 +28,20 @@ def conllu_corpus(path):
     return [prune_sentence(sent) for sent in sents]
 
 
-def get_emission_sents(sents):
-    emission_sents = []
+# Generate the list of tuples of the word and the part-of-speech.
+def get_tagged_sents(sents):
+    train_tagged_sents = []
     for sent in sents:
-        for index in range(len(sent)):
-            emission_sents.append(sent[index]['upos']+', '+sent[index]['form'])
-    return emission_sents
+        tagged_sents = []
+        for token in sent:
+            tagged_sents.append((token['form'], token['upos']))
+            # print(token['form'], '->', token['upos'], sep='', end=' ')
+        train_tagged_sents.append(tagged_sents)
+    return train_tagged_sents
 
 
-def get_transition_sents(sents):
-    transition_sents = []
-    for sent in sents:
-        if len(sent) != 1:
-            for index in range(len(sent)):
-                if sent[index]['id'] == 1:
-                    transition_sents.append('<s>' + ', ' + sent[index]['upos'])
-                elif sent[index]['id'] == len(sent):
-                    transition_sents.append(sent[index - 1]['upos'] + ', ' + sent[index]['upos'])
-                    transition_sents.append(sent[index]['upos'] + ', ' + '</s>')
-                else:
-                    transition_sents.append(sent[index - 1]['upos'] + ', ' + sent[index]['upos'])
-        else:
-            transition_sents.append('<s>' + ', ' + sent[0]['upos'])
-            transition_sents.append(sent[0]['upos'] + ', ' + '</s>')
-    return transition_sents
+def get_sents(tagged_sents):
+    return [[(START_OF_SENTENCE_MARKER, START_OF_SENTENCE_MARKER)]
+            + s + [(END_OF_SENTENCE_MARKER, END_OF_SENTENCE_MARKER)]
+            for s in tagged_sents]
 
-
-def get_tagset(sents):
-    tagset = set()
-    for tags in sents:
-        t = tags[:tags.find(", ")]
-        tagset.add(t)
-    return tagset

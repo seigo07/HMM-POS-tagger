@@ -1,5 +1,3 @@
-from nltk import FreqDist, WittenBellProbDist
-from nltk.util import ngrams
 from pos_tagger import pos_tagger
 
 

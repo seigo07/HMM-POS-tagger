@@ -1,47 +1,35 @@
 from nltk import FreqDist, WittenBellProbDist
+from nltk.util import ngrams
 
 class pos_tagger:
     # Define start-of-sentence and end-of-sentence markers in form (word, tag)
-    startWord = "<s>"
-    endWord = "</s>"
+    START_OF_SENTENCE_MARKER = "<s>"
+    END_OF_SENTENCE_MARKER = "</s>"
 
     def get_emission_prob(self, sents, tagset):
-        emissionProb = {}
-        token_word = list()
-        for tag in tagset:
-            for tags in sents:
-                if tag == tags[:tags.find(", ")]:
-                    words = tags[tags.find(", ") + 2:]
-                    token_word.append(words)
-            emissionProb[tag] = WittenBellProbDist(FreqDist(token_word), bins=1e5)
-            token_word.clear()
-        return emissionProb
+        emission = []
+        for s in sents:
+            emission += [(w.lower(), t) for (w, t) in s]
 
+        emission_prob = {}
+        for tag in tagset:
+            words = [w for (w, t) in emission if t == tag]
+            emission_prob[tag] = WittenBellProbDist(FreqDist(words), bins=1e5)
+
+        return emission_prob
 
     def get_transition_prob(self, sents, tagset):
-        transitionProb = {}
-        token_word = list()
+        transition = []
+        for s in sents:
+            tags = [t for (w, t) in s]
+            transition += ngrams(tags,2)
+
+        transition_prob = {}
         for tag in tagset:
-            for tags in sents:
-                if tag == tags[:tags.find(", ")]:
-                    words = tags[tags.find(", ") + 2:]
-                    token_word.append(words)
-            transitionProb[tag] = WittenBellProbDist(FreqDist(token_word), bins=1e5)
-            token_word.clear()
-        return transitionProb
+            next_tags = [nextTag for (prevTag, nextTag) in transition if prevTag == tag]
+            transition_prob[tag] = WittenBellProbDist(FreqDist(next_tags), bins=1e5)
 
-
-        # transition = []
-        # for s in sents:
-        #     tags = [t for (w, t) in s]
-        #     transition += ngrams(tags,2)
-        #
-        # transitionProb = {}
-        # for tag in tagset:
-        #     nextTags = [nextTag for (prevTag, nextTag) in transition if prevTag == tag]
-        #     transitionProb[tag] = WittenBellProbDist(FreqDist(nextTags), bins=1e5)
-        #
-        # return transitionProb
+        return transition_prob
 
     def evaluate(self, sent, pred, comparision):
         # print "word\t\tactual tag\t\tpredited tag"
@@ -49,7 +37,7 @@ class pos_tagger:
             # print sent[i][0]+"\t\t"+sent[i][1]+"\t\t"+pred[i][1]
             assert (sent[i][0].lower() == pred[i][0])
 
-            if sent[i][1] == self.startWord or sent[i][1] == self.endWord:
+            if sent[i][1] == self.START_OF_SENTENCE_MARKER or sent[i][1] == self.END_OF_SENTENCE_MARKER:
                 continue
 
             # if pred[i][1] == self.startWord or pred[i][1] == self.endWord:

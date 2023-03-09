@@ -1,37 +1,47 @@
 from nltk import FreqDist, WittenBellProbDist
-from nltk.util import ngrams
 
 class pos_tagger:
     # Define start-of-sentence and end-of-sentence markers in form (word, tag)
     startWord = "<s>"
     endWord = "</s>"
 
-    def getEmissionProb(self, sents, tagset):
-        # P(word|tag) = emissionProb[tag].prob(word)
-        emission = []
-        for s in sents:
-            emission += [(w.lower(), t) for (w, t) in s] # treat for both lowercase and uppercase in the same way
-
+    def get_emission_prob(self, sents, tagset):
         emissionProb = {}
+        token_word = list()
         for tag in tagset:
-            words = [w for (w, t) in emission if t == tag]
-            emissionProb[tag] = WittenBellProbDist(FreqDist(words), bins=1e5)
-
+            for tags in sents:
+                if tag == tags[:tags.find(", ")]:
+                    words = tags[tags.find(", ") + 2:]
+                    token_word.append(words)
+            emissionProb[tag] = WittenBellProbDist(FreqDist(token_word), bins=1e5)
+            token_word.clear()
         return emissionProb
 
-    def getTransitionProb(self, sents, tagset):
-        # P(nextTag|prevTag) = transitionProb[prevTag].prob(nextTag)
-        transition = []
-        for s in sents:
-            tags = [t for (w, t) in s]
-            transition += ngrams(tags,2)
 
+    def get_transition_prob(self, sents, tagset):
         transitionProb = {}
+        token_word = list()
         for tag in tagset:
-            nextTags = [nextTag for (prevTag, nextTag) in transition if prevTag == tag]
-            transitionProb[tag] = WittenBellProbDist(FreqDist(nextTags), bins=1e5)
-
+            for tags in sents:
+                if tag == tags[:tags.find(", ")]:
+                    words = tags[tags.find(", ") + 2:]
+                    token_word.append(words)
+            transitionProb[tag] = WittenBellProbDist(FreqDist(token_word), bins=1e5)
+            token_word.clear()
         return transitionProb
+
+
+        # transition = []
+        # for s in sents:
+        #     tags = [t for (w, t) in s]
+        #     transition += ngrams(tags,2)
+        #
+        # transitionProb = {}
+        # for tag in tagset:
+        #     nextTags = [nextTag for (prevTag, nextTag) in transition if prevTag == tag]
+        #     transitionProb[tag] = WittenBellProbDist(FreqDist(nextTags), bins=1e5)
+        #
+        # return transitionProb
 
     def evaluate(self, sent, pred, comparision):
         # print "word\t\tactual tag\t\tpredited tag"
