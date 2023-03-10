@@ -86,8 +86,8 @@ class posTagger:
             tagged_sent = []
             for index, (w, t) in enumerate(sent):
                 # print(sent[index-1][1])
-                is_first = index == 1
-                word = self.check_unk_word_train(w, words_dist, is_first)
+                # is_first = index == 1
+                word = self.check_unk_word_train(sent, index, words_dist)
                 tagged_sent.append((word, t))
             tagged_sents.append(tagged_sent)
         self.train_sents = tagged_sents
@@ -99,24 +99,27 @@ class posTagger:
         for sent in self.test_sents:
             tagged_sent = []
             for index, (w, t) in enumerate(sent):
-                is_first = index == 1
-                word = self.check_unk_word_test(w, train_words, words_dist, is_first)
+                word = self.check_unk_word_test(sent, index, train_words, words_dist)
                 tagged_sent.append((word, t))
             tagged_sents.append(tagged_sent)
         self.test_sents = tagged_sents
 
-    def check_unk_word_train(self, word, words_dist, is_first):
+    def check_unk_word_train(self, sent, index, words_dist):
+        word = sent[index][0]
         if words_dist[word] == 1:
-            return self.check_unk_pattern(word, is_first)
+            return self.check_unk_pattern(sent, index)
         return word
 
-    def check_unk_word_test(self, word, train_words, words_dist, is_first):
+    def check_unk_word_test(self, sent, index, train_words, words_dist):
+        word = sent[index][0]
         if word not in train_words:
-            return self.check_unk_pattern(word, is_first)
-        return self.check_unk_word_train(word, words_dist, is_first)
+            return self.check_unk_pattern(sent, index)
+        return self.check_unk_word_train(sent, index, words_dist)
 
-    def check_unk_pattern(self, word, is_first):
+    def check_unk_pattern(self, sent, index):
         if self.lang == 'en':
+            word = sent[index][0]
+            is_first = index == 1
             # verb or noun (gerund)
             if word.endswith('ing'):
                 return self.UNKNOWN_WORD_TAG + "-ing"
