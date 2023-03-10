@@ -32,12 +32,13 @@ class posTagger:
         self.train_sents = self.get_sents_with_markers(train_tagged_sents)
 
         # Using UNK tag for training
-        self.set_train_tagged_sents_with_unk()
+        self.set_train_tagged_sents_with_unk_train()
 
-        # test_tagged_sents = self.get_tagged_sents(initial_test_sents)
-        # Using UNK tag for testing
-        test_tagged_sents = self.get_tagged_sents_with_unk(initial_test_sents)
+        test_tagged_sents = self.get_tagged_sents(initial_test_sents)
         self.test_sents = self.get_sents_with_markers(test_tagged_sents)
+
+        # Using UNK tag for testing
+        self.set_train_tagged_sents_with_unk_test()
 
         # print("train_sents: ", self.train_sents)
         # print("test_sents: ", self.test_sents)
@@ -77,7 +78,7 @@ class posTagger:
                 + s + [(self.END_OF_SENTENCE_MARKER, self.END_OF_SENTENCE_MARKER)]
                 for s in tagged_sents]
 
-    def set_train_tagged_sents_with_unk(self):
+    def set_train_tagged_sents_with_unk_train(self):
         words = [w for s in self.train_sents for (w, _) in s]
         words_dist = FreqDist(words)
         tagged_sents = []
@@ -91,18 +92,18 @@ class posTagger:
             tagged_sents.append(tagged_sent)
         self.train_sents = tagged_sents
 
-    def get_tagged_sents_with_unk(self, sents):
+    def set_train_tagged_sents_with_unk_test(self):
         train_words = [w for s in self.train_sents for (w, _) in s]
         words_dist = FreqDist(train_words)
         tagged_sents = []
-        for sent in sents:
+        for sent in self.test_sents:
             tagged_sent = []
-            for index, token in enumerate(sent):
+            for index, (w, t) in enumerate(sent):
                 is_first = index == 1
-                word = self.check_unk_word_test(token['form'], train_words, words_dist, is_first)
-                tagged_sent.append((word, token['upos']))
+                word = self.check_unk_word_test(w, train_words, words_dist, is_first)
+                tagged_sent.append((word, t))
             tagged_sents.append(tagged_sent)
-        return tagged_sents
+        self.test_sents = tagged_sents
 
     def check_unk_word_train(self, word, words_dist, is_first):
         if words_dist[word] == 1:
