@@ -23,9 +23,10 @@ class posTagger:
 
     def __init__(self, lang):
 
-        treebank = self.train_corpus(lang)
-        initial_train_sents = self.conllu_corpus(treebank)
-        initial_test_sents = self.conllu_corpus(treebank)
+        train_treebank = self.train_corpus(lang)
+        test_treebank = self.test_corpus(lang)
+        initial_train_sents = self.conllu_corpus(train_treebank)
+        initial_test_sents = self.conllu_corpus(test_treebank)
 
         train_tagged_sents = self.get_tagged_sents(initial_train_sents)
         self.train_sents = self.get_sents_with_markers(train_tagged_sents)
