@@ -6,8 +6,8 @@ import time
 
 
 class posTagger:
-    treebank = {'en': '../UD_English-GUM/en_gum', 'fr': '../UD_French-Rhapsodie/fr_rhapsodie',
-                'uk': '../UD_Ukrainian-IU/uk_iu'}
+    treebank = {'en': 'UD_English-GUM/en_gum', 'fr': 'UD_French-Rhapsodie/fr_rhapsodie',
+                'uk': 'UD_Ukrainian-IU/uk_iu'}
 
     START_OF_SENTENCE_MARKER = "<s>"
     END_OF_SENTENCE_MARKER = "</s>"
