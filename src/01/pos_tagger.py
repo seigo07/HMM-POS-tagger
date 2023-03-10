@@ -32,12 +32,15 @@ class posTagger:
         self.train_sents = self.get_sents_with_markers(train_tagged_sents)
 
         # Using UNK tag
-        # self.set_train_tagged_sents_with_unk()
+        self.set_train_tagged_sents_with_unk()
 
-        test_tagged_sents = self.get_tagged_sents(initial_test_sents)
+        # test_tagged_sents = self.get_tagged_sents(initial_test_sents)
         # Using UNK tag
-        # test_tagged_sents = self.get_tagged_sents_with_unk(initial_test_sents)
+        test_tagged_sents = self.get_tagged_sents_with_unk(initial_test_sents)
         self.test_sents = self.get_sents_with_markers(test_tagged_sents)
+
+        print("train_sents: ", self.train_sents)
+        print("test_sents: ", self.test_sents)
 
         self.set_tagset(self.test_sents)
 
@@ -81,47 +84,45 @@ class posTagger:
         for sent in self.train_sents:
             tagged_sent = []
             for (w, t) in sent:
-                word = w
-                # if word.endswith('ing'):
-                if words_dist[word] == 1:
-                    word = self.UNKNOWN_WORD_TAG
+                word = self.check_unk_word_train(w, words_dist)
                 tagged_sent.append((word, t))
             tagged_sents.append(tagged_sent)
         self.train_sents = tagged_sents
 
     def get_tagged_sents_with_unk(self, sents):
-        words = [w for s in self.train_sents for (w, _) in s]
+        train_words = [w for s in self.train_sents for (w, _) in s]
+        words_dist = FreqDist(train_words)
         tagged_sents = []
         for sent in sents:
             tagged_sent = []
             for token in sent:
-                word = token['form']
-                # if word.endswith('ing'):
-                if word not in words:
-                    word = self.UNKNOWN_WORD_TAG
+                word = self.check_unk_word_test(token['form'], train_words, words_dist)
                 tagged_sent.append((word, token['upos']))
             tagged_sents.append(tagged_sent)
         return tagged_sents
 
+    def check_unk_word_train(self, word, words_dist):
+        if words_dist[word] == 1:
+            return self.check_unk_pattern(word)
+        return word
+
+    def check_unk_word_test(self, word, train_words, words_dist):
+        if word not in train_words:
+            return self.check_unk_pattern(word)
+        return self.check_unk_word_train(word, words_dist)
+
+    def check_unk_pattern(self, word):
+        if word.endswith('ing'):
+            return self.UNKNOWN_WORD_TAG + "-ing"
+        return word
+
     def set_emission_prob(self):
 
-        # P(word|tag) = emissionProb[tag].prob(word)
-        emission = []
-        for s in self.train_sents:
-            emission += [(w.lower(), t) for (w, t) in s] # treat for both lowercase and uppercase in the same way
-
-        emission_prob = {}
         tags = set([t for sent in self.train_sents for (_, t) in sent])
-        for tag in tags:
-            words = [w for (w, t) in emission if t == tag]
-            emission_prob[tag] = WittenBellProbDist(FreqDist(words), bins=1e5)
 
-        self.emission_prob = emission_prob
-        # tags = set([t for sent in self.train_sents for (_, t) in sent])
-        #
-        # for tag in tags:
-        #     words = [w.lower() for sent in self.train_sents for (w, t) in sent if t == tag]
-        #     self.emission_prob[tag] = WittenBellProbDist(FreqDist(words), bins=1e5)
+        for tag in tags:
+            words = [w.lower() for sent in self.train_sents for (w, t) in sent if t == tag]
+            self.emission_prob[tag] = WittenBellProbDist(FreqDist(words), bins=1e5)
 
     def set_transition_prob(self):
         transition = []
