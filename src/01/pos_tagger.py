@@ -39,8 +39,8 @@ class posTagger:
         test_tagged_sents = self.get_tagged_sents_with_unk(initial_test_sents)
         self.test_sents = self.get_sents_with_markers(test_tagged_sents)
 
-        print("train_sents: ", self.train_sents)
-        print("test_sents: ", self.test_sents)
+        # print("train_sents: ", self.train_sents)
+        # print("test_sents: ", self.test_sents)
 
         self.set_tagset(self.test_sents)
 
@@ -83,8 +83,9 @@ class posTagger:
         tagged_sents = []
         for sent in self.train_sents:
             tagged_sent = []
-            for (w, t) in sent:
-                word = self.check_unk_word_train(w, words_dist)
+            for index, (w, t) in enumerate(sent):
+                is_first = index == 1
+                word = self.check_unk_word_train(w, words_dist, is_first)
                 tagged_sent.append((word, t))
             tagged_sents.append(tagged_sent)
         self.train_sents = tagged_sents
@@ -95,25 +96,30 @@ class posTagger:
         tagged_sents = []
         for sent in sents:
             tagged_sent = []
-            for token in sent:
-                word = self.check_unk_word_test(token['form'], train_words, words_dist)
+            for index, token in enumerate(sent):
+                is_first = index == 1
+                word = self.check_unk_word_test(token['form'], train_words, words_dist, is_first)
                 tagged_sent.append((word, token['upos']))
             tagged_sents.append(tagged_sent)
         return tagged_sents
 
-    def check_unk_word_train(self, word, words_dist):
+    def check_unk_word_train(self, word, words_dist, is_first):
         if words_dist[word] == 1:
-            return self.check_unk_pattern(word)
+            return self.check_unk_pattern(word, is_first)
         return word
 
-    def check_unk_word_test(self, word, train_words, words_dist):
+    def check_unk_word_test(self, word, train_words, words_dist, is_first):
         if word not in train_words:
-            return self.check_unk_pattern(word)
-        return self.check_unk_word_train(word, words_dist)
+            return self.check_unk_pattern(word, is_first)
+        return self.check_unk_word_train(word, words_dist, is_first)
 
-    def check_unk_pattern(self, word):
+    def check_unk_pattern(self, word, is_first):
+        # gerund
         if word.endswith('ing'):
             return self.UNKNOWN_WORD_TAG + "-ing"
+        # proper noun
+        elif not is_first and word.istitle():
+            return self.UNKNOWN_WORD_TAG + "-propernoun"
         return word
 
     def set_emission_prob(self):
