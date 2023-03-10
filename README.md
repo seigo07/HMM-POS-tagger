@@ -6,6 +6,8 @@ Viterbi algorithm, and its application to part-of-speech (POS) tagging.
 
 Viterbi algorithm, and its application to part-of-speech (POS) tagging.
 
+<img width="717" alt="Screenshot 2023-03-10 at 16 38 29" src="https://user-images.githubusercontent.com/118636537/224376356-4ae071b5-c83d-4782-bad6-052c1abbdd13.png">
+
 ## Getting Started
 
 ### Dependencies
