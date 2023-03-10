@@ -5,11 +5,9 @@ import progressbar as progressbar
 import time
 
 
-class pos_tagger:
-    treebank = {}
-    treebank['en'] = '../UD_English-GUM/en_gum'
-    treebank['fr'] = '../UD_French-Rhapsodie/fr_rhapsodie'
-    treebank['uk'] = '../UD_Ukrainian-IU/uk_iu'
+class posTagger:
+    treebank = {'en': '../UD_English-GUM/en_gum', 'fr': '../UD_French-Rhapsodie/fr_rhapsodie',
+                'uk': '../UD_Ukrainian-IU/uk_iu'}
 
     START_OF_SENTENCE_MARKER = "<s>"
     END_OF_SENTENCE_MARKER = "</s>"
@@ -106,11 +104,23 @@ class pos_tagger:
 
     def set_emission_prob(self):
 
-        tags = set([t for sent in self.train_sents for (_, t) in sent])
+        # P(word|tag) = emissionProb[tag].prob(word)
+        emission = []
+        for s in self.train_sents:
+            emission += [(w.lower(), t) for (w, t) in s] # treat for both lowercase and uppercase in the same way
 
+        emission_prob = {}
+        tags = set([t for sent in self.train_sents for (_, t) in sent])
         for tag in tags:
-            words = [w.lower() for sent in self.train_sents for (w, t) in sent if t == tag]
-            self.emission_prob[tag] = WittenBellProbDist(FreqDist(words), bins=1e5)
+            words = [w for (w, t) in emission if t == tag]
+            emission_prob[tag] = WittenBellProbDist(FreqDist(words), bins=1e5)
+
+        self.emission_prob = emission_prob
+        # tags = set([t for sent in self.train_sents for (_, t) in sent])
+        #
+        # for tag in tags:
+        #     words = [w.lower() for sent in self.train_sents for (w, t) in sent if t == tag]
+        #     self.emission_prob[tag] = WittenBellProbDist(FreqDist(words), bins=1e5)
 
     def set_transition_prob(self):
         transition = []
@@ -258,7 +268,6 @@ class pos_tagger:
         print("Predicting time", (predicting_time - leaning_time))
         print("Step 3: Evaluation")
         # Evaluation: comparing them with the gold-standard sequence of tags for that sentence
-        # tagger.set_tag_set(test_sents)
         for tag in self.tagset:
             if tag == self.START_OF_SENTENCE_MARKER or tag == self.END_OF_SENTENCE_MARKER:
                 continue
