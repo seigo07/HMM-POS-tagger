@@ -115,11 +115,9 @@ class posTagger:
         return self.check_unk_word_train(sent, index, words_dist)
 
     def check_unk_pattern(self, sent, index):
+        word = sent[index][0]
+        is_first = index == 1
         if self.lang == 'en':
-            word = sent[index][0]
-            is_first = index == 1
-            prev_tag = sent[index - 1][1]
-            next_tag = sent[index + 1][1]
             # proper noun
             if not is_first and word.istitle():
                 return self.UNKNOWN_WORD_TAG + "-propn"
@@ -130,38 +128,73 @@ class posTagger:
             elif word.endswith('ed'):
                 return self.UNKNOWN_WORD_TAG + "-ed"
             # noun
-            elif word.endswith('ion') or word.endswith('ment') or word.endswith('ance') or word.endswith('ence')\
-                    or word.endswith('ity') or word.endswith('ety') or word.endswith('ness') or word.endswith('dom'):
-                return self.UNKNOWN_WORD_TAG + "-noun"
+            elif word.endswith('ment'):
+                return self.UNKNOWN_WORD_TAG + "-ment"
+            # noun
+            elif word.endswith('ness'):
+                return self.UNKNOWN_WORD_TAG + "-ness"
             # verb
-            elif word.endswith('ify') or word.endswith('ise') or word.endswith('ize') or word.endswith('ate'):
-                return self.UNKNOWN_WORD_TAG + "-verb"
+            elif word.endswith('ify'):
+                return self.UNKNOWN_WORD_TAG + "-ify"
+            # verb
+            elif word.endswith('ize'):
+                return self.UNKNOWN_WORD_TAG + "-ize"
             # adjective
-            elif word.endswith('al') or word.endswith('able') or word.endswith('ful') or word.endswith('ous')\
-                    or word.endswith('ical') or word.endswith('ic') or word.endswith('tive') or word.endswith('sive'):
-                return self.UNKNOWN_WORD_TAG + "-adj"
+            elif word.endswith('able'):
+                return self.UNKNOWN_WORD_TAG + "-able"
+            # adjective
+            elif word.endswith('ful'):
+                return self.UNKNOWN_WORD_TAG + "-ful"
             # adverb
             elif word.endswith('ly'):
                 return self.UNKNOWN_WORD_TAG + "-ly"
-            # noun or pronoun + verb
-            elif next_tag == 'VERB':
-                return self.UNKNOWN_WORD_TAG + "noun-pronoun-verb"
-            # adjective + noun or pronoun
-            elif prev_tag == 'ADJ':
-                return self.UNKNOWN_WORD_TAG + "-adj-noun-pronoun"
-            # determiner + noun or pronoun
-            elif prev_tag == 'DET':
-                return self.UNKNOWN_WORD_TAG + "-det-noun-pronoun"
-            # catch-all
             else:
                 return word
+                # catch-all
                 # return self.UNKNOWN_WORD_TAG
         elif self.lang == 'fr':
-            # catch-all
-            return self.UNKNOWN_WORD_TAG
+            # proper noun
+            if not is_first and word.istitle():
+                return self.UNKNOWN_WORD_TAG + "-propn"
+            # noun
+            elif word.endswith('ion'):
+                return self.UNKNOWN_WORD_TAG + "-ion"
+            # noun
+            elif word.endswith('ison'):
+                return self.UNKNOWN_WORD_TAG + "-ison"
+            # noun
+            elif word.endswith('eur'):
+                return self.UNKNOWN_WORD_TAG + "-eur"
+            # noun
+            elif word.endswith('age'):
+                return self.UNKNOWN_WORD_TAG + "-age"
+            # noun
+            elif word.endswith('ine'):
+                return self.UNKNOWN_WORD_TAG + "-ine"
+            # verb
+            elif word.endswith('er'):
+                return self.UNKNOWN_WORD_TAG + "-er"
+            # verb
+            elif word.endswith('ir'):
+                return self.UNKNOWN_WORD_TAG + "-ir"
+            # adjuctive
+            elif word.endswith('ble'):
+                return self.UNKNOWN_WORD_TAG + "-ble"
+            # adverb
+            elif word.endswith('ment'):
+                return self.UNKNOWN_WORD_TAG + "-ment"
+            else:
+                return word
+                # catch-all
+                # return self.UNKNOWN_WORD_TAG
         elif self.lang == 'uk':
-            # catch-all
-            return self.UNKNOWN_WORD_TAG
+            # proper noun
+            if not is_first and word.istitle():
+                return self.UNKNOWN_WORD_TAG + "-propn"
+            else:
+                # return word
+                # catch-all
+                return self.UNKNOWN_WORD_TAG
 
     def set_emission_prob(self):
 
