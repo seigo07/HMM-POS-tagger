@@ -2,7 +2,7 @@ from nltk import FreqDist, WittenBellProbDist
 from nltk.util import ngrams
 from conllu import parse_incr
 
-
+# The class handles reading corpus, POS tagging, calculate probabilities, and testing
 class posTagger:
     treebank = {'en': '../UD_English-GUM/en_gum', 'fr': '../UD_French-Rhapsodie/fr_rhapsodie',
                 'uk': '../UD_Ukrainian-IU/uk_iu'}
@@ -74,11 +74,13 @@ class posTagger:
             tagged_sents.append(tagged_sent)
         return tagged_sents
 
+    # Create sents with <s></s>
     def get_sents_with_markers(self, tagged_sents):
         return [[(self.START_OF_SENTENCE_MARKER, self.START_OF_SENTENCE_MARKER)]
                 + s + [(self.END_OF_SENTENCE_MARKER, self.END_OF_SENTENCE_MARKER)]
                 for s in tagged_sents]
 
+    # Tagging unknown words and get the training sentences with them
     def set_train_tagged_sents_with_unk_train(self):
         words = [w for s in self.train_sents for (w, _) in s]
         words_dist = FreqDist(words)
@@ -91,6 +93,7 @@ class posTagger:
             tagged_sents.append(tagged_sent)
         self.train_sents = tagged_sents
 
+    # Tagging unknown words and get the test sentences with them
     def set_train_tagged_sents_with_unk_test(self):
         train_words = [w for s in self.train_sents for (w, _) in s]
         words_dist = FreqDist(train_words)
@@ -103,18 +106,21 @@ class posTagger:
             tagged_sents.append(tagged_sent)
         self.test_sents = tagged_sents
 
+    # Handler for receiving each sentence of training data
     def check_unk_word_train(self, sent, index, words_dist):
         word = sent[index][0]
         if words_dist[word] == 1:
             return self.check_unk_pattern(sent, index)
         return word
 
+    # Handler for receiving each sentence of test data
     def check_unk_word_test(self, sent, index, train_words, words_dist):
         word = sent[index][0]
         if word not in train_words:
             return self.check_unk_pattern(sent, index)
         return self.check_unk_word_train(sent, index, words_dist)
 
+    # Applying UNK tags to unknown words based on each pattern
     def check_unk_pattern(self, sent, index):
         word = sent[index][0]
         is_first = index == 1
@@ -224,6 +230,7 @@ class posTagger:
                 # catch-all
                 # return self.UNKNOWN_WORD_TAG
 
+    # Setter for emission probability
     def set_emission_prob(self):
 
         tags = set([t for sent in self.train_sents for (_, t) in sent])
@@ -232,6 +239,7 @@ class posTagger:
             words = [w.lower() for sent in self.train_sents for (w, t) in sent if t == tag]
             self.emission_prob[tag] = WittenBellProbDist(FreqDist(words), bins=1e5)
 
+    # Setter for transition probability
     def set_transition_prob(self):
         transition = []
         for s in self.train_sents:
@@ -243,6 +251,7 @@ class posTagger:
             next_tags = [nextTag for (prevTag, nextTag) in transition if prevTag == tag]
             self.transition_prob[tag] = WittenBellProbDist(FreqDist(next_tags), bins=1e5)
 
+    # Making prediction of accuracy
     def evaluate(self, sent, pred, comparision):
         for i in range(1, len(sent) - 1):
             assert (sent[i][0].lower() == pred[i][0])
@@ -259,6 +268,7 @@ class posTagger:
 
         return comparision
 
+    # Initialize vtb with given sentence
     def initialization(self, sentence):
         vtb = {}
         for tag in self.tagset:
@@ -271,6 +281,7 @@ class posTagger:
 
         return vtb
 
+    # Execute Viterbi algorithm process
     def run(self, vtb, sentence):
         for i in range(2, len(sentence) - 1):
             word = sentence[i]
@@ -286,6 +297,7 @@ class posTagger:
 
         return vtb
 
+    # Finalize max_prob
     def determine(self, vtb, sentence):
         max_prob = (None, 0)
         n = len(sentence) - 1
@@ -296,6 +308,7 @@ class posTagger:
 
         return max_prob
 
+    # The function for backtrack process
     def backtrack(self, vtb, sentence, max_prob):
         predicted_pod = [(self.END_OF_SENTENCE_MARKER, self.END_OF_SENTENCE_MARKER)]
         for i in range(len(sentence) - 2, 0, -1):
@@ -308,6 +321,7 @@ class posTagger:
         predicted_pod.insert(0, (self.START_OF_SENTENCE_MARKER, self.START_OF_SENTENCE_MARKER))
         return predicted_pod
 
+    # Calling each Viterbi process here
     def apply(self, sentence):
         vtb = self.initialization(sentence)
         vtb = self.run(vtb, sentence)
@@ -318,6 +332,7 @@ class posTagger:
 
         return self.backtrack(vtb, sentence, maxProb)
 
+    # Start testing, then evaluating
     def start(self):
 
         print(":::::::::::::::::::::::::::Step 2: Applying HMM:::::::::::::::::::::::::::")

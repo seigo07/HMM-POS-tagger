@@ -23,5 +23,7 @@ if not is_lang_valid():
     exit(INVALID_ARGS_LANG_ERROR)
 
 print("Loading...")
+# Start training
 tagger = posTagger(sys.argv[1])
+# Start test
 tagger.start()
