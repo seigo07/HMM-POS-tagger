@@ -1,7 +1,6 @@
 from nltk import FreqDist, WittenBellProbDist
 from nltk.util import ngrams
 from conllu import parse_incr
-import progressbar as progressbar
 import time
 
 
@@ -242,9 +241,6 @@ class posTagger:
         print("Training time", (leaning_time - start_time))
         print("Step 2: Applying HMM")
         # Applying a trained HMM on sentences from the testing data
-        bar = progressbar.ProgressBar(maxval=len(self.test_sents),
-                                      widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
-        bar.start()
 
         comparision = {
             "total": {"correct": 0, "incorrect": 0},
@@ -258,7 +254,6 @@ class posTagger:
 
         cc = 0
         for sent in self.test_sents:
-            bar.update(index)
             if len(sent) > 100:
                 continue
             words = [w.lower() for (w, t) in sent]
@@ -270,7 +265,6 @@ class posTagger:
             predicted = self.apply(words)
             comparision = self.evaluate(sent, predicted, comparision)
             index += 1
-        bar.finish()
         print(cc)
         predicting_time = time.time()
         print("Predicting time", (predicting_time - leaning_time))
