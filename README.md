@@ -18,5 +18,7 @@ Viterbi algorithm, and its application to part-of-speech (POS) tagging.
 * Please run the following command
 * Usege en, fr, or uk as <lang>
 ```
+cd CS5012_P1/src
 python3 p1.py <lang>
+<lang> : select one of these options: en, fr, uk.
 ```
