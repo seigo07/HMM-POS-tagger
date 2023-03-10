@@ -1,7 +1,6 @@
 from nltk import FreqDist, WittenBellProbDist
 from nltk.util import ngrams
 from conllu import parse_incr
-import time
 
 
 class posTagger:
@@ -40,9 +39,6 @@ class posTagger:
         # Using UNK tag for testing
         self.set_train_tagged_sents_with_unk_test()
 
-        # print("train_sents: ", self.train_sents)
-        # print("test_sents: ", self.test_sents)
-
         self.set_tagset(self.test_sents)
 
         # Estimate the emission and transition probabilities
@@ -63,6 +59,11 @@ class posTagger:
         data_file = open(path, 'r', encoding='utf-8')
         sents = list(parse_incr(data_file))
         return [self.prune_sentence(sent) for sent in sents]
+
+    def set_tagset(self, sents):
+        for s in sents:
+            t = [t for (w, t) in s]
+            self.tagset.update(t)
 
     def get_tagged_sents(self, sents):
         tagged_sents = []
@@ -243,45 +244,26 @@ class posTagger:
             self.transition_prob[tag] = WittenBellProbDist(FreqDist(next_tags), bins=1e5)
 
     def evaluate(self, sent, pred, comparision):
-        # print "word\t\tactual tag\t\tpredited tag"
         for i in range(1, len(sent) - 1):
-            # print sent[i][0]+"\t\t"+sent[i][1]+"\t\t"+pred[i][1]
             assert (sent[i][0].lower() == pred[i][0])
 
             if sent[i][1] == self.START_OF_SENTENCE_MARKER or sent[i][1] == self.END_OF_SENTENCE_MARKER:
                 continue
 
-            # if pred[i][1] == self.startWord or pred[i][1] == self.endWord:
-            #     comparision["extra"] += 1
-
             if sent[i][1] == pred[i][1]:
                 comparision["total"]["correct"] += 1
                 comparision[sent[i][1]]["correct"] += 1
-                # if i==1:
-                #     comparision["first"]["correct"] += 1
-                # if i==(len(sent)-2):
-                #     comparision["last"]["correct"] += 1
             else:
                 comparision["total"]["incorrect"] += 1
                 comparision[sent[i][1]]["incorrect"] += 1
-                # if i==1:
-                #     comparision["first"]["incorrect"] += 1
-                # if i==(len(sent)-2):
-                #     comparision["last"]["incorrect"] += 1
 
         return comparision
 
-    def set_tagset(self, sents):
-        for s in sents:
-            t = [t for (w, t) in s]
-            self.tagset.update(t)
-
-    def initialse(self, sentence):
+    def initialization(self, sentence):
         vtb = {}
         for tag in self.tagset:
             vtb[tag] = [None for w in sentence] + [None]
 
-        # initialise
         for tag in self.tagset:
             word = sentence[1]
             p = self.transition_prob[self.START_OF_SENTENCE_MARKER].prob(tag) * self.emission_prob[tag].prob(word)
@@ -304,7 +286,7 @@ class posTagger:
 
         return vtb
 
-    def finalise(self, vtb, sentence):
+    def determine(self, vtb, sentence):
         max_prob = (None, 0)
         n = len(sentence) - 1
         for tag in self.tagset:
@@ -327,9 +309,9 @@ class posTagger:
         return predicted_pod
 
     def apply(self, sentence):
-        vtb = self.initialse(sentence)
+        vtb = self.initialization(sentence)
         vtb = self.run(vtb, sentence)
-        maxProb = self.finalise(vtb, sentence)
+        maxProb = self.determine(vtb, sentence)
 
         if maxProb[0] is None:
             return [(w, None) for w in sentence]
@@ -338,12 +320,7 @@ class posTagger:
 
     def start(self):
 
-        start_time = time.time()
-        leaning_time = time.time()
-        print("Training time", (leaning_time - start_time))
         print(":::::::::::::::::::::::::::Step 2: Applying HMM:::::::::::::::::::::::::::")
-        # Applying a trained HMM on sentences from the testing data
-
         comparision = {
             "total": {"correct": 0, "incorrect": 0},
             "first": {"correct": 1, "incorrect": 0},
@@ -352,26 +329,18 @@ class posTagger:
         for tag in self.tagset:
             comparision[tag] = {"correct": 0, "incorrect": 0}
 
-        index = 0
-
-        cc = 0
         for sent in self.test_sents:
             if len(sent) > 100:
                 continue
             words = [w.lower() for (w, t) in sent]
             Xs = [w for (w, t) in sent if t == "X"]
             if len(Xs) > 0:
-                cc += 1
                 continue
 
             predicted = self.apply(words)
             comparision = self.evaluate(sent, predicted, comparision)
-            index += 1
-        # print(cc)
-        predicting_time = time.time()
-        print("Predicting time", (predicting_time - leaning_time))
+
         print(":::::::::::::::::::::::::::Step 3: Evaluation:::::::::::::::::::::::::::")
-        # Evaluation: comparing them with the gold-standard sequence of tags for that sentence
         for tag in self.tagset:
             if tag == self.START_OF_SENTENCE_MARKER or tag == self.END_OF_SENTENCE_MARKER:
                 continue

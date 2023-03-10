@@ -11,7 +11,7 @@ Viterbi algorithm, and its application to part-of-speech (POS) tagging.
 ### Dependencies
 
 * MacOS Ventura 13.0
-* Java Version: openjdk 19.0.1
+* Python Version: 3.9.13
 
 ### Executing program
 
