@@ -85,8 +85,6 @@ class posTagger:
         for sent in self.train_sents:
             tagged_sent = []
             for index, (w, t) in enumerate(sent):
-                # print(sent[index-1][1])
-                # is_first = index == 1
                 word = self.check_unk_word_train(sent, index, words_dist)
                 tagged_sent.append((word, t))
             tagged_sents.append(tagged_sent)
@@ -120,15 +118,44 @@ class posTagger:
         if self.lang == 'en':
             word = sent[index][0]
             is_first = index == 1
-            # verb or noun (gerund)
-            if word.endswith('ing'):
-                return self.UNKNOWN_WORD_TAG + "-ing"
+            prev_tag = sent[index - 1][1]
+            next_tag = sent[index + 1][1]
             # proper noun
-            elif not is_first and word.istitle():
-                return self.UNKNOWN_WORD_TAG + "-propernoun"
+            if not is_first and word.istitle():
+                return self.UNKNOWN_WORD_TAG + "-propn"
+            # verb or noun (gerund)
+            elif word.endswith('ing'):
+                return self.UNKNOWN_WORD_TAG + "-ing"
+            # verb or adjective
+            elif word.endswith('ed'):
+                return self.UNKNOWN_WORD_TAG + "-ed"
+            # noun
+            elif word.endswith('ion') or word.endswith('ment') or word.endswith('ance') or word.endswith('ence')\
+                    or word.endswith('ity') or word.endswith('ety') or word.endswith('ness') or word.endswith('dom'):
+                return self.UNKNOWN_WORD_TAG + "-noun"
+            # verb
+            elif word.endswith('ify') or word.endswith('ise') or word.endswith('ize') or word.endswith('ate'):
+                return self.UNKNOWN_WORD_TAG + "-verb"
+            # adjective
+            elif word.endswith('al') or word.endswith('able') or word.endswith('ful') or word.endswith('ous')\
+                    or word.endswith('ical') or word.endswith('ic') or word.endswith('tive') or word.endswith('sive'):
+                return self.UNKNOWN_WORD_TAG + "-adj"
+            # adverb
+            elif word.endswith('ly'):
+                return self.UNKNOWN_WORD_TAG + "-ly"
+            # noun or pronoun + verb
+            elif next_tag == 'VERB':
+                return self.UNKNOWN_WORD_TAG + "noun-pronoun-verb"
+            # adjective + noun or pronoun
+            elif prev_tag == 'ADJ':
+                return self.UNKNOWN_WORD_TAG + "-adj-noun-pronoun"
+            # determiner + noun or pronoun
+            elif prev_tag == 'DET':
+                return self.UNKNOWN_WORD_TAG + "-det-noun-pronoun"
             # catch-all
             else:
-                return self.UNKNOWN_WORD_TAG
+                return word
+                # return self.UNKNOWN_WORD_TAG
         elif self.lang == 'fr':
             # catch-all
             return self.UNKNOWN_WORD_TAG
