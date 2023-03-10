@@ -12,29 +12,30 @@ class posTagger:
     END_OF_SENTENCE_MARKER = "</s>"
     UNKNOWN_WORD_TAG = "UNK"
 
+    lang = 'en'
     train_sents = []
     test_sents = []
-
     tagset = set()
-
     emission_prob = {}
     transition_prob = {}
 
     def __init__(self, lang):
 
-        train_treebank = self.train_corpus(lang)
-        test_treebank = self.test_corpus(lang)
+        self.lang = lang
+
+        train_treebank = self.train_corpus()
+        test_treebank = self.test_corpus()
         initial_train_sents = self.conllu_corpus(train_treebank)
         initial_test_sents = self.conllu_corpus(test_treebank)
 
         train_tagged_sents = self.get_tagged_sents(initial_train_sents)
         self.train_sents = self.get_sents_with_markers(train_tagged_sents)
 
-        # Using UNK tag
+        # Using UNK tag for training
         self.set_train_tagged_sents_with_unk()
 
         # test_tagged_sents = self.get_tagged_sents(initial_test_sents)
-        # Using UNK tag
+        # Using UNK tag for testing
         test_tagged_sents = self.get_tagged_sents_with_unk(initial_test_sents)
         self.test_sents = self.get_sents_with_markers(test_tagged_sents)
 
@@ -44,15 +45,15 @@ class posTagger:
         self.set_tagset(self.test_sents)
 
         # Estimate the emission and transition probabilities
-        print("Step 1: Estimating probabilities")
+        print(":::::::::::::::::::::::::::Step 1: Estimating probabilities:::::::::::::::::::::::::::")
         self.set_emission_prob()
         self.set_transition_prob()
 
-    def train_corpus(self, lang):
-        return self.treebank[lang] + '-ud-train.conllu'
+    def train_corpus(self):
+        return self.treebank[self.lang] + '-ud-train.conllu'
 
-    def test_corpus(self, lang):
-        return self.treebank[lang] + '-ud-test.conllu'
+    def test_corpus(self):
+        return self.treebank[self.lang] + '-ud-test.conllu'
 
     def prune_sentence(self, sent):
         return [token for token in sent if type(token['id']) is int]
@@ -83,6 +84,7 @@ class posTagger:
         for sent in self.train_sents:
             tagged_sent = []
             for index, (w, t) in enumerate(sent):
+                # print(sent[index-1][1])
                 is_first = index == 1
                 word = self.check_unk_word_train(w, words_dist, is_first)
                 tagged_sent.append((word, t))
@@ -113,13 +115,22 @@ class posTagger:
         return self.check_unk_word_train(word, words_dist, is_first)
 
     def check_unk_pattern(self, word, is_first):
-        # gerund
-        if word.endswith('ing'):
-            return self.UNKNOWN_WORD_TAG + "-ing"
-        # proper noun
-        elif not is_first and word.istitle():
-            return self.UNKNOWN_WORD_TAG + "-propernoun"
-        return word
+        if self.lang == 'en':
+            # verb or noun (gerund)
+            if word.endswith('ing'):
+                return self.UNKNOWN_WORD_TAG + "-ing"
+            # proper noun
+            elif not is_first and word.istitle():
+                return self.UNKNOWN_WORD_TAG + "-propernoun"
+            # catch-all
+            else:
+                return self.UNKNOWN_WORD_TAG
+        elif self.lang == 'fr':
+            # catch-all
+            return self.UNKNOWN_WORD_TAG
+        elif self.lang == 'uk':
+            # catch-all
+            return self.UNKNOWN_WORD_TAG
 
     def set_emission_prob(self):
 
@@ -239,7 +250,7 @@ class posTagger:
         start_time = time.time()
         leaning_time = time.time()
         print("Training time", (leaning_time - start_time))
-        print("Step 2: Applying HMM")
+        print(":::::::::::::::::::::::::::Step 2: Applying HMM:::::::::::::::::::::::::::")
         # Applying a trained HMM on sentences from the testing data
 
         comparision = {
@@ -265,23 +276,23 @@ class posTagger:
             predicted = self.apply(words)
             comparision = self.evaluate(sent, predicted, comparision)
             index += 1
-        print(cc)
+        # print(cc)
         predicting_time = time.time()
         print("Predicting time", (predicting_time - leaning_time))
-        print("Step 3: Evaluation")
+        print(":::::::::::::::::::::::::::Step 3: Evaluation:::::::::::::::::::::::::::")
         # Evaluation: comparing them with the gold-standard sequence of tags for that sentence
         for tag in self.tagset:
             if tag == self.START_OF_SENTENCE_MARKER or tag == self.END_OF_SENTENCE_MARKER:
                 continue
 
             if (comparision[tag]["correct"] + comparision[tag]["incorrect"]) == 0:
-                print("Tag {0} {1}".format(tag, "Inf"))
+                print("{0} {1}".format(tag, "Inf"))
                 continue
 
             accuracy = comparision[tag]["correct"] * 100.0 / (
                     comparision[tag]["correct"] + comparision[tag]["incorrect"])
-            print("Tag {0} {1:.2f}".format(tag, accuracy))
+            print("{0} {1:.2f}".format(tag, accuracy))
 
         accuracy = comparision["total"]["correct"] * 100.0 / (
                 comparision["total"]["correct"] + comparision["total"]["incorrect"])
-        print("Total {0:.2f}".format(accuracy))
+        print("Overall {0:.2f}".format(accuracy))
