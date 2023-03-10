@@ -177,7 +177,7 @@ class posTagger:
             # verb
             elif word.endswith('ir'):
                 return self.UNKNOWN_WORD_TAG + "-ir"
-            # adjuctive
+            # adjective
             elif word.endswith('ble'):
                 return self.UNKNOWN_WORD_TAG + "-ble"
             # adverb
@@ -191,10 +191,37 @@ class posTagger:
             # proper noun
             if not is_first and word.istitle():
                 return self.UNKNOWN_WORD_TAG + "-propn"
+            # adjective
+            elif word.endswith('ий'):
+                return self.UNKNOWN_WORD_TAG + "-ий"
+            # adjective
+            elif word.endswith('им'):
+                return self.UNKNOWN_WORD_TAG + "-им"
+            # adjective
+            elif word.endswith('их'):
+                return self.UNKNOWN_WORD_TAG + "-их"
+            # adjective
+            elif word.endswith('ому'):
+                return self.UNKNOWN_WORD_TAG + "-ому"
+            # adjective
+            elif word.endswith('ого'):
+                return self.UNKNOWN_WORD_TAG + "-ого"
+            # adjective
+            elif word.endswith('ої'):
+                return self.UNKNOWN_WORD_TAG + "-ої"
+            # noun
+            elif word.endswith('ик'):
+                return self.UNKNOWN_WORD_TAG + "-ик"
+            # noun
+            elif word.endswith('ець'):
+                return self.UNKNOWN_WORD_TAG + "-ець"
+            # noun
+            elif word.endswith('ість'):
+                return self.UNKNOWN_WORD_TAG + "-ість"
             else:
-                # return word
+                return word
                 # catch-all
-                return self.UNKNOWN_WORD_TAG
+                # return self.UNKNOWN_WORD_TAG
 
     def set_emission_prob(self):
 
